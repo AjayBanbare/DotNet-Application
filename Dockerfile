@@ -10,6 +10,17 @@ RUN dotnet restore
 
 # Copy the entire project and build the application
 COPY . ./
+
+# Debugging information: List files to ensure correct files are copied
+RUN ls -la
+
+# Debugging information: Print the contents of bundleconfig.json
+RUN cat bundleconfig.json
+
+# Debugging information: Print the contents of other relevant files if needed
+# RUN cat <filename>
+
+# Continue with the build process
 RUN dotnet publish -c Release -o out
 
 # Build the runtime image
