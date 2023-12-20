@@ -1,34 +1,12 @@
-# Use the official .NET Core SDK as a base image
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
-WORKDIR /app
-
-# Copy only the project file and restore dependencies
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /src
 COPY SimpleWebAppMVC.csproj .
-RUN dotnet restore
+RUN dotnet restore "SimpleWebAppMVC.csproj"
+COPY . .
+RUN dotnet publish "SimpleWebAppMVC.csproj" -c Release -o /publish
 
-# Copy the entire project and build the application
-COPY . ./
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 as final
+WORKDIR /app 
+COPY --from=build /publish .
 
-# Debugging information: List files to ensure correct files are copied
-RUN ls -la
-
-# Debugging information: Print the contents of bundleconfig.json
-RUN cat bundleconfig.json
-
-# Update BuildBundlerMinifier to version 3.2.449
-RUN dotnet add package BuildBundlerMinifier --version 3.2.449
-
-# Continue with the build process
-RUN dotnet publish -c Release -o out -p:ProjectName=SimpleWebAppMVC.csproj
-
-# Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
-WORKDIR /app
-
-COPY --from=build-env /app/out .
-
-# Expose the port that your application listens on
-EXPOSE 80
-
-# Set the entry point for the application
-ENTRYPOINT ["dotnet", "SimpleWebAppMVC.dll", "--environment", "Production"]
+ENTRYPOINT [ "dotnet", "SimpleWebAppMVC.dll" ]
